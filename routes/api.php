@@ -1,28 +1,52 @@
 <?php
-
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ReferentielController;
-;
+use Laravel\Passport\Passport;
+use Kreait\Firebase\Factory;
+use App\Services\FirebaseService;
+
 
 Route::prefix('v1')->group(function () {
+    Route::post('/login', [AuthController::class, 'login'])->name('login'); // Login
+    Route::post('/logout', [AuthController::class, 'logout']); // Logout
+});
 
-    // Auth Routes
-    Route::post('/login', [AuthController::class, 'login'])->name('login');
-    Route::post('/logout', [AuthController::class, 'logout']);
+Route::middleware(['auth:api', 'check.role:admin'])->group(function () {
+    Route::post('/users/forAdmin', [UserController::class, 'storeAdmin']);
+    Route::get('/users', [UserController::class, 'index']); // Route pour lister les utilisateurs
+    Route::get('/users/{id}', [UserController::class, 'show']); // Route pour afficher un utilisateur
+    Route::put('/users/{id}', [UserController::class, 'update']); // Route pour mettre à jour un utilisateur
 
-    // Protected Routes
+});
+Route::prefix('v1')->group(function () {
     Route::middleware(['auth:api', 'check.role:admin,manager'])->group(function () {
-        // Referentiel Routes
-        Route::post('/referentiels', [ReferentielController::class, 'store'])->name('referentiels.store');
-        Route::get('/referentiels', [ReferentielController::class, 'index'])->name('referentiels.index');
-        Route::get('/referentiels/{id}', [ReferentielController::class, 'show'])->name('referentiels.show');
-        Route::patch('/referentiels/{id}', [ReferentielController::class, 'update'])->name('referentiels.update');
-        Route::delete('/referentiels/{id}', [ReferentielController::class, 'destroy'])->name('referentiels.destroy');
-        Route::get('/archive/referentiels', [ReferentielController::class, 'archived'])->name('referentiels.archived');
+        Route::post('/referentiels', [ReferentielController::class, 'store']); // ajouter un Réferentiel 
+        Route::get('/referentiels', [ReferentielController::class, 'index']); // Lister tous les Réferentiel
+        Route::get('/referentiels/{id}', [ReferentielController::class, 'show']);// Afficher un référentiel avec ses compétences et modules
+        Route::get('/test', [ReferentielController::class, 'test']);
+        Route::patch('/referentiels/{id}', [ReferentielController::class, 'update']);
+        Route::delete('/referentiels/{id}', [ReferentielController::class, 'destroy']);
+        Route::get('/archive/referentiels', [ReferentielController::class, 'archived']);
     });
+});
+/* Route::middleware(['firebase.auth'])->group(function () {
+    // Vos routes ici
+}); */
 
-    Route::middleware(['auth:api', 'check.role:cm'])->post('/users/forCm', [UserController::class, 'storeCm']);
-    Route::middleware(['auth:api', 'check.role:manager'])->post('/users/forManager', [UserController::class, 'storeManager']);
+Route::middleware(['auth:api', 'check.role:cm'])->group(function () {
+    Route::post('/users/forCm', [UserController::class, 'storeCm']);
+});
+
+Route::middleware(['auth:api', 'check.role:manager'])->group(function () {
+    Route::post('/users/forManager', [UserController::class, 'storeManager']);
+});
+
+use App\Http\Controllers\NotificationController;
+
+Route::get('/test-firebase', function (FirebaseService $firebaseService) {
+    $result = $firebaseService->testConnection();
+    return response()->json($result);
 });

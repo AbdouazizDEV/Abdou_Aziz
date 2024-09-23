@@ -37,7 +37,6 @@ class ReferentielService
         if ($this->getDataSource() === 'firebase') {
             return $this->firebaseReferentielRepository->all($statut);
         }
-
         return $this->referentielRepository->all($statut);
     }
 

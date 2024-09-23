@@ -31,14 +31,9 @@ class FirebaseReferentielRepository
         return $referentiel;
     }
 
-    public function all($statut = null)
+    public function all($statut = null): array
     {
-        $reference = $this->database->getReference('referentiels.json');  // Ajoutez .json ici
-        $query = $reference;
-        if ($statut) {
-            $query = $query->orderByChild('statut')->equalTo($statut);
-        }
-        return $query->getSnapshot()->getValue() ?: [];
+        return FirebaseReferentiel::getAll($statut);  // Appel de la méthode du modèle
     }
 
     public function find($id)

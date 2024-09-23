@@ -16,6 +16,7 @@ use Kreait\Firebase\Database\UrlBuilder;
 use App\Repositories\Contracts\ReferentielRepositoryInterface;
 use App\Repositories\FirebaseReferentielRepository;
 use App\Repositories\ReferentielRepository;
+use App\Repositories\MySQLReferentielRepository;
 
 use Kreait\Firebase\Database\UrlBuilder\DefaultUrlBuilder;
 
@@ -62,7 +63,7 @@ class AppServiceProvider extends ServiceProvider
                 return $app->make(ReferentielRepository::class); // Utiliser MySQL pour les référentiels
             }
         });
-        
+        $this->app->bind(ReferentielRepositoryInterface::class, MySQLReferentielRepository::class);
         
         
     }

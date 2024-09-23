@@ -1,16 +1,12 @@
 <?php
+
 namespace App\Repositories\Contracts;
 
 interface ReferentielRepositoryInterface
 {
-    public function create(array $data);
-    public function update($id, array $data);
+    public function create(array $data): array;
+    public function all($statut = null): array;
     public function find($id);
-    public function all($statut = null);
-    
-    public function addCompetence($referentielId, array $data);
-    public function updateCompetence($referentielId, array $data);
-    
-    public function addModule($competenceId, array $data);
-    public function updateModule($competenceId, array $data);
+    public function update($id, array $data);
+    public function delete($id);
 }

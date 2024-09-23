@@ -2,10 +2,10 @@
 
 namespace App\Repositories;
 
+use App\Models\FirebaseReferentiel;
 use Kreait\Firebase\Database;
-use App\Repositories\Contracts\ReferentielRepositoryInterface;
 
-class FirebaseReferentielRepository implements ReferentielRepositoryInterface
+class FirebaseReferentielRepository 
 {
     protected $database;
 
@@ -14,75 +14,50 @@ class FirebaseReferentielRepository implements ReferentielRepositoryInterface
         $this->database = $database;
     }
 
+   /*  public function create(array $data)
+    {
+        // Correction de la référence avec .json à la fin
+        //dd($data);
+        $reference = $this->database->getReference();  // Ajoutez .json ici
+        $newReferentiel = $reference->push($data);
+
+        return $newReferentiel->getValue();
+    } */
     public function create(array $data)
     {
-        // Créer une référence Firebase pour les référentiels
-        $reference = $this->database->getReference('referentiels')->push($data); // Pas de .json ici
-        return $reference->getValue();
-    }
+        $referentiel = new FirebaseReferentiel($data);
+        $referentiel->save();
 
-    public function update($id, array $data)
-    {
-        $reference = $this->database->getReference('referentiels/' . $id); // Pas de .json ici
-        $reference->update($data);
-        return $reference->getValue();
-    }
-
-    public function find($id)
-    {
-        $reference = $this->database->getReference('referentiels/' . $id); // Pas de .json ici
-        return $reference->getValue();
+        return $referentiel;
     }
 
     public function all($statut = null)
     {
-        $reference = $this->database->getReference('referentiels'); // Pas de .json ici
-        $snapshots = $reference->getSnapshot();
-        $referentiels = $snapshots->getValue();
-
+        $reference = $this->database->getReference('referentiels.json');  // Ajoutez .json ici
+        $query = $reference;
         if ($statut) {
-            return array_filter($referentiels, function ($referentiel) use ($statut) {
-                return isset($referentiel['statut']) && $referentiel['statut'] === $statut;
-            });
+            $query = $query->orderByChild('statut')->equalTo($statut);
         }
-
-        return $referentiels ?: [];
+        return $query->getSnapshot()->getValue() ?: [];
     }
 
-    public function addCompetence($referentielId, array $data)
+    public function find($id)
     {
-        $reference = $this->database->getReference('referentiels/' . $referentielId . '/competences')->push($data); // Pas de .json ici
-        return $reference->getValue();
+        $reference = $this->database->getReference('referentiels/' . $id . '.json');  // Ajoutez .json ici
+        return $reference->getSnapshot()->getValue() ?: null;
     }
 
-    public function updateCompetence($referentielId, array $data)
+    public function update($id, array $data)
     {
-        $competenceId = $data['id'];
-        unset($data['id']);
-        $reference = $this->database->getReference('referentiels/' . $referentielId . '/competences/' . $competenceId); // Pas de .json ici
+        $reference = $this->database->getReference('referentiels/' . $id . '.json');  // Ajoutez .json ici
         $reference->update($data);
-        return $reference->getValue();
+        return $reference->getSnapshot()->getValue();
     }
 
-    public function addModule($competenceId, array $data)
+    public function delete($id)
     {
-        $reference = $this->database->getReference('competences/' . $competenceId . '/modules')->push($data); // Pas de .json ici
-        return $reference->getValue();
-    }
-
-    public function updateModule($competenceId, array $data)
-    {
-        $moduleId = $data['id'];
-        unset($data['id']);
-        $reference = $this->database->getReference('competences/' . $competenceId . '/modules/' . $moduleId); // Pas de .json ici
-        $reference->update($data);
-        return $reference->getValue();
-    }
-
-    public function softDelete($id)
-    {
-        $reference = $this->database->getReference('referentiels/' . $id);
-        $reference->update(['statut' => 'archiver']);
+        $reference = $this->database->getReference('referentiels/' . $id . '.json');  // Ajoutez .json ici
+        $reference->remove();
         return true;
     }
 }

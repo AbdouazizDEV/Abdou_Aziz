@@ -1,8 +1,8 @@
 <?php
+
 namespace App\Services;
 
 use App\Repositories\Contracts\ReferentielRepositoryInterface;
-use Illuminate\Support\Facades\DB;
 use App\Repositories\FirebaseReferentielRepository;
 
 class ReferentielService
@@ -10,84 +10,61 @@ class ReferentielService
     protected $referentielRepository;
     protected $firebaseReferentielRepository;
 
-    public function __construct(
-        ReferentielRepositoryInterface $referentielRepository,
-        FirebaseReferentielRepository $firebaseReferentielRepository
-    ) {
+    public function __construct(ReferentielRepositoryInterface $referentielRepository, FirebaseReferentielRepository $firebaseReferentielRepository)
+    {
         $this->referentielRepository = $referentielRepository;
         $this->firebaseReferentielRepository = $firebaseReferentielRepository;
     }
 
+    // Méthode pour décider où enregistrer (MySQL ou Firebase)
+    protected function getDataSource()
+    {
+        return env('REFERENTIEL_DATA_SOURCE', 'mysql');  // Par défaut sur MySQL
+    }
+
     public function createReferentiel(array $data)
     {
-        return DB::transaction(function () use ($data) {
-            $dataSource = env('USER_DATA_SOURCE', 'mysql');
-            //dd($dataSource);
-            if ($dataSource === 'firebase') {
-                $referentiel = $this->firebaseReferentielRepository->create($data);
-            } else {
-                $referentiel = $this->referentielRepository->create($data);
-            }
+        // Enregistrer dans MySQL ou Firebase en fonction du .env
+        if ($this->getDataSource() === 'firebase') {
+            return $this->firebaseReferentielRepository->create($data);
+        }
 
-            if (isset($data['competences'])) {
-                foreach ($data['competences'] as $competenceData) {
-                    $competence = $this->addCompetenceToReferentiel($referentiel, $competenceData);
-
-                    if (isset($competenceData['modules'])) {
-                        foreach ($competenceData['modules'] as $moduleData) {
-                            $this->addModuleToCompetence($competence, $moduleData);
-                        }
-                    }
-                }
-            }
-
-            return $referentiel;
-        });
+        return $this->referentielRepository->create($data);
     }
 
-    private function addCompetenceToReferentiel($referentiel, array $competenceData)
+    public function getReferentiels($statut = null)
     {
-        return $this->referentielRepository->addCompetence($referentiel->id, $competenceData);
+        if ($this->getDataSource() === 'firebase') {
+            return $this->firebaseReferentielRepository->all($statut);
+        }
+
+        return $this->referentielRepository->all($statut);
     }
 
-    private function addModuleToCompetence($competence, array $moduleData)
+    public function getReferentielById($id)
     {
-        return $this->referentielRepository->addModule($competence->id, $moduleData);
+        if ($this->getDataSource() === 'firebase') {
+            return $this->firebaseReferentielRepository->find($id);
+        }
+
+        return $this->referentielRepository->find($id);
     }
 
     public function updateReferentiel($id, array $data)
     {
-        return DB::transaction(function () use ($id, $data) {
-            $referentiel = $this->referentielRepository->update($id, $data);
+        if ($this->getDataSource() === 'firebase') {
+            return $this->firebaseReferentielRepository->update($id, $data);
+        }
 
-            if (isset($data['competences'])) {
-                foreach ($data['competences'] as $competenceData) {
-                    $competence = $this->referentielRepository->updateCompetence($referentiel->id, $competenceData);
-
-                    if (isset($competenceData['modules'])) {
-                        foreach ($competenceData['modules'] as $moduleData) {
-                            $this->referentielRepository->updateModule($competence->id, $moduleData);
-                        }
-                    }
-                }
-            }
-
-            return $referentiel;
-        });
+        return $this->referentielRepository->update($id, $data);
     }
 
-    public function all($statut = null)
+    public function deleteReferentiel($id)
     {
-        return $this->referentielRepository->all($statut);
-    }
+        if ($this->getDataSource() === 'firebase') {
+            return $this->firebaseReferentielRepository->delete($id);
+        }
 
-    public function find($id)
-    {
-        return $this->referentielRepository->find($id);
-    }
-
-    public function softDelete($id)
-    {
-        return $this->referentielRepository->softDelete($id);
+        return $this->referentielRepository->delete($id);
     }
 }

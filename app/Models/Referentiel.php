@@ -1,6 +1,5 @@
 <?php
 
-// Referentiel.php
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -10,10 +9,15 @@ class Referentiel extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['code', 'libelle', 'description', 'photo_couverture', 'statut'];
+    protected $fillable = ['code', 'libelle', 'description', 'photo', 'statut'];
 
     public function competences()
     {
         return $this->hasMany(Competence::class);
+    }
+
+    public function isActif()
+    {
+        return $this->statut === 'Actif';
     }
 }

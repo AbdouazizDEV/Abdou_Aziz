@@ -1,9 +1,10 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use App\Services\ReferentielService;
 use Illuminate\Http\Request;
-use Kreait\Firebase\Factory;
+use App\Services\ReferentielService;
+
 class ReferentielController extends Controller
 {
     protected $referentielService;
@@ -16,57 +17,45 @@ class ReferentielController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'code' => 'required|unique:referentiels',
-            'libelle' => 'required|unique:referentiels',
+            'code' => 'required|unique:referentiels,code|max:255',
+            'libelle' => 'required|unique:referentiels,libelle|max:255',
             'description' => 'nullable|string',
-            'photo_couverture' => 'nullable|string',
-            'competences' => 'array',
+            'photo' => 'nullable|string',
         ]);
 
         $referentiel = $this->referentielService->createReferentiel($data);
-
         return response()->json($referentiel, 201);
     }
 
     public function index(Request $request)
     {
-        $statut = $request->query('statut', 'actif'); // Par défaut on filtre les actifs
-        $referentiels = $this->referentielService->all($statut); // Utilisation de la méthode all() du service
-    
+        $statut = $request->get('statut');
+        $referentiels = $this->referentielService->getReferentiels($statut);
         return response()->json($referentiels);
     }
-    
 
     public function show($id)
     {
-        $referentiel = $this->referentielService->find($id);
-
-        if (!$referentiel) {
-            return response()->json(['message' => 'Référentiel non trouvé'], 404);
-        }
-
+        $referentiel = $this->referentielService->getReferentielById($id);
         return response()->json($referentiel);
     }
 
     public function update(Request $request, $id)
     {
         $data = $request->validate([
-            'code' => 'sometimes|unique:referentiels,code,' . $id,
-            'libelle' => 'sometimes|unique:referentiels,libelle,' . $id,
+            'code' => 'sometimes|unique:referentiels,code,' . $id . '|max:255',
+            'libelle' => 'sometimes|unique:referentiels,libelle,' . $id . '|max:255',
             'description' => 'nullable|string',
-            'competences' => 'array',
+            'photo' => 'nullable|string',
         ]);
 
         $referentiel = $this->referentielService->updateReferentiel($id, $data);
-
         return response()->json($referentiel);
     }
 
     public function destroy($id)
     {
-        $referentiel = $this->referentielService->softDelete($id);
-
-        return response()->json(['message' => 'Référentiel supprimé (soft delete)']);
+        $this->referentielService->deleteReferentiel($id);
+        return response()->json(['message' => 'Référentiel supprimé avec succès']);
     }
-    
 }

@@ -14,4 +14,8 @@ class FirebaseUser extends FirebaseModel
     {
         return $this->belongsTo(Role::class);
     }
+    protected function getCollectionName(): string
+    {
+        return 'users'; // Spécifiez ici le nom de la collection pour ce modèle
+    }
 }

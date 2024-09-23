@@ -71,4 +71,8 @@ class ReferentielRepository implements ReferentielRepositoryInterface
         }
         return false;
     }
+    public function delete($id)
+    {
+        //
+    }
 }

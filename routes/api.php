@@ -23,14 +23,13 @@ Route::middleware(['auth:api', 'check.role:admin'])->group(function () {
 });
 Route::prefix('v1')->group(function () {
     Route::middleware(['auth:api', 'check.role:admin,manager'])->group(function () {
-        Route::post('/referentiels', [ReferentielController::class, 'store']); // ajouter un Réferentiel 
-        Route::get('/referentiels', [ReferentielController::class, 'index']); // Lister tous les Réferentiel
-        Route::get('/referentiels/{id}', [ReferentielController::class, 'show']);// Afficher un référentiel avec ses compétences et modules
-        Route::get('/test', [ReferentielController::class, 'test']);
+        Route::post('/referentiels', [ReferentielController::class, 'store']);
+        Route::get('/referentiels', [ReferentielController::class, 'index']);
+        Route::get('/referentiels/{id}', [ReferentielController::class, 'show']);
         Route::patch('/referentiels/{id}', [ReferentielController::class, 'update']);
         Route::delete('/referentiels/{id}', [ReferentielController::class, 'destroy']);
-        Route::get('/archive/referentiels', [ReferentielController::class, 'archived']);
     });
+    
 });
 /* Route::middleware(['firebase.auth'])->group(function () {
     // Vos routes ici

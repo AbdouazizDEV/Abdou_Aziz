@@ -12,27 +12,30 @@ class FirebaseReferentiel extends FirebaseModel
         return 'referentiels'; // Spécifiez ici le nom de la collection pour ce modèle
     }
      // Méthode pour récupérer tous les référentiels
-     public static function getAll($statut = null): array
-     {
-         $firebase = app('firebase.database');
-         $reference = $firebase->getReference('referentiels');
- 
-         if ($statut) {
-             $query = $reference->orderByChild('statut')->equalTo($statut);
-         } else {
-             $query = $reference;
-         }
- 
-         $snapshot = $query->getSnapshot()->getValue() ?: [];
- 
-         $referentiels = [];
-         foreach ($snapshot as $key => $data) {
-             $data['id'] = $key;
-             $referentiels[] = (new self())->fromArray($data);
-         }
- 
-         return $referentiels;
-     }
+     // Utilisation dans votre modèle FirebaseReferentiel pour filtrer par statut
+public static function getAll($statut = null): array
+{
+    $firebase = app('firebase.database');
+    $reference = $firebase->getReference('referentiels');
+
+    if ($statut) {
+        // Filtrer par le statut "actif" ou autre valeur
+        $query = $reference->orderByChild('statut')->equalTo($statut);
+    } else {
+        $query = $reference;
+    }
+
+    $snapshot = $query->getSnapshot()->getValue() ?: [];
+
+    $referentiels = [];
+    foreach ($snapshot as $key => $data) {
+        $data['id'] = $key;
+        $referentiels[] = (new self())->fromArray($data);
+    }
+
+    return $referentiels;
+}
+
  
      // Méthode pour trouver un référentiel par ID
      public static function findById($id): ?self
@@ -71,6 +74,8 @@ class FirebaseReferentiel extends FirebaseModel
      {
          $firebase = app('firebase.database');
          $reference = $firebase->getReference('referentiels/' . $this->id);
+
+         // Supprimer le référentiel dans Firebase 
          $reference->remove();
  
          return true;

@@ -3,6 +3,7 @@ namespace App\Repositories;
 
 use App\Models\Referentiel;
 use App\Models\Competence;
+use App\Models\FirebaseReferentiel;
 use App\Models\Module;
 use App\Repositories\Contracts\ReferentielRepositoryInterface;
 class ReferentielRepository implements ReferentielRepositoryInterface
@@ -32,7 +33,7 @@ class ReferentielRepository implements ReferentielRepositoryInterface
     {
         // Filtrer par statut si fourni, sinon retourner tous les référentiels
         if ($statut) {
-            return Referentiel::where('statut', $statut)->get();
+            return FirebaseReferentiel::where('statut', $statut)->get();
         }
 
         return Referentiel::all();

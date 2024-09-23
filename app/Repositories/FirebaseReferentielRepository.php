@@ -38,21 +38,40 @@ class FirebaseReferentielRepository
 
     public function find($id)
     {
-        $reference = $this->database->getReference('referentiels/' . $id . '.json');  // Ajoutez .json ici
-        return $reference->getSnapshot()->getValue() ?: null;
+        // $reference = $this->database->getReference('referentiels/' . $id . '.json');  // Ajoutez .json ici
+        // return $reference->getSnapshot()->getValue() ?: null;
+        return FirebaseReferentiel::findById($id);  // Appel de la méthode du modèle
     }
 
-    public function update($id, array $data)
+    public function update($id, array $data): bool|FirebaseReferentiel
     {
-        $reference = $this->database->getReference('referentiels/' . $id . '.json');  // Ajoutez .json ici
-        $reference->update($data);
-        return $reference->getSnapshot()->getValue();
+        // Trouver le référentiel avec l'ID donné
+        $referentiel = FirebaseReferentiel::findById($id);
+    
+        if (!$referentiel) {
+            throw new \Exception('Référentiel non trouvé');
+        }
+    
+        // Appeler la méthode d'instance update
+        $referentiel->update($data);
+    
+        return $referentiel;
     }
+    
 
     public function delete($id)
     {
-        $reference = $this->database->getReference('referentiels/' . $id . '.json');  // Ajoutez .json ici
-        $reference->remove();
+        // Trouver le référentiel avec l'ID donné
+        $referentiel = FirebaseReferentiel::findById($id);
+
+        if (!$referentiel) {
+            throw new \Exception('Référentiel non trouvé');
+        }
+
+        // Appeler la méthode d'instance delete() pour supprimer le référentiel
+        $referentiel->delete();
+
         return true;
     }
+
 }

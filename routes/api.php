@@ -28,6 +28,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/referentiels/{id}', [ReferentielController::class, 'show']);
         Route::patch('/referentiels/{id}', [ReferentielController::class, 'update']);
         Route::delete('/referentiels/{id}', [ReferentielController::class, 'destroy']);
+        Route::get('/archive/referentiels', [ReferentielController::class, 'getarchive']);
     });
     
 });

@@ -172,6 +172,7 @@ return [
         App\Providers\ServiceAppProvider::class,
         App\Providers\RepositoryServiceProvider::class,
         Kreait\Laravel\Firebase\ServiceProvider::class,
+        App\Providers\PromotionServiceProvider::class,
         
     ])->toArray(),
         'user_data_source' => env('USER_DATA_SOURCE', 'firebase'), // valeur par défaut si non définie

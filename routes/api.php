@@ -3,6 +3,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\ReferentielController;
 use Laravel\Passport\Passport;
 use Kreait\Firebase\Factory;
@@ -29,9 +30,18 @@ Route::prefix('v1')->group(function () {
         Route::patch('/referentiels/{id}', [ReferentielController::class, 'update']);
         Route::delete('/referentiels/{id}', [ReferentielController::class, 'destroy']);
         Route::get('/archive/referentiels', [ReferentielController::class, 'getarchive']);
+
     });
     
 });
+Route::prefix('v1')->middleware(['auth:api', 'check.role:admin,manager'])->group(function () {
+    Route::post('/promotions', [PromotionController::class, 'store']); // Ajouter une promotion
+    Route::get('/promotions', [PromotionController::class, 'index']); // Lister les promotions
+    Route::get('/promotions/{id}', [PromotionController::class, 'show']); // Afficher une promotion
+    Route::patch('/promotions/{id}', [PromotionController::class, 'update']); // Mettre à jour une promotion
+    Route::delete('/promotions/{id}', [PromotionController::class, 'destroy']); // Supprimer une promotion
+});
+
 /* Route::middleware(['firebase.auth'])->group(function () {
     // Vos routes ici
 }); */

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Repositories\Contracts\PromotionRepositoryInterface;
+use App\Repositories\FirebasePromotionRepository;
 use Illuminate\Support\ServiceProvider;
 use App\Services\AuthService;
 use App\Services\Contracts\AuthServiceInterface;
@@ -15,6 +17,7 @@ use GuzzleHttp\ClientInterface;
 use Kreait\Firebase\Database\UrlBuilder;
 use App\Repositories\Contracts\ReferentielRepositoryInterface;
 use App\Repositories\FirebaseReferentielRepository;
+use App\Repositories\MySQLPromotionRepository;
 use App\Repositories\ReferentielRepository;
 use App\Repositories\MySQLReferentielRepository;
 
@@ -64,7 +67,11 @@ class AppServiceProvider extends ServiceProvider
             }
         });
         $this->app->bind(ReferentielRepositoryInterface::class, MySQLReferentielRepository::class);
-        
+        if (env('PROMOTION_DATA_SOURCE', 'mysql') === 'firebase') {
+            $this->app->bind(PromotionRepositoryInterface::class, FirebasePromotionRepository::class);
+        } else {
+            $this->app->bind(PromotionRepositoryInterface::class, MySQLPromotionRepository::class);
+        }
         
     }
 

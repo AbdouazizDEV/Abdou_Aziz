@@ -13,28 +13,28 @@ class FirebaseReferentiel extends FirebaseModel
     }
      // Méthode pour récupérer tous les référentiels
      // Utilisation dans votre modèle FirebaseReferentiel pour filtrer par statut
-public static function getAll($statut = null): array
-{
-    $firebase = app('firebase.database');
-    $reference = $firebase->getReference('referentiels');
+    public static function getAll($statut = null): array
+    {
+        $firebase = app('firebase.database');
+        $reference = $firebase->getReference('referentiels');
 
-    if ($statut) {
-        // Filtrer par le statut "actif" ou autre valeur
-        $query = $reference->orderByChild('statut')->equalTo($statut);
-    } else {
-        $query = $reference;
+        if ($statut) {
+            // Filtrer par le statut "actif" ou autre valeur
+            $query = $reference->orderByChild('statut')->equalTo($statut);
+        } else {
+            $query = $reference;
+        }
+
+        $snapshot = $query->getSnapshot()->getValue() ?: [];
+
+        $referentiels = [];
+        foreach ($snapshot as $key => $data) {
+            $data['id'] = $key;
+            $referentiels[] = (new self())->fromArray($data);
+        }
+
+        return $referentiels;
     }
-
-    $snapshot = $query->getSnapshot()->getValue() ?: [];
-
-    $referentiels = [];
-    foreach ($snapshot as $key => $data) {
-        $data['id'] = $key;
-        $referentiels[] = (new self())->fromArray($data);
-    }
-
-    return $referentiels;
-}
 
  
      // Méthode pour trouver un référentiel par ID
@@ -105,4 +105,12 @@ public static function getAll($statut = null): array
              'statut' => $this->statut,
          ];
      }
+     public function save(array $options = [])
+    {
+        $firebase = app('firebase.database');
+        $reference = $firebase->getReference($this->path);  // Pointe vers la collection 'referentiels'
+        $data = $this->attributesToArray();  // Convertit les attributs en tableau
+
+        $reference->push($data);  // Ajoute le référentiel dans Firebase
+    }
 }

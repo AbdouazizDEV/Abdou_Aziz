@@ -16,10 +16,14 @@ class FirebaseUserRepository
 
     public function create(array $data)
     {
-        $user = new FirebaseUser($data);
-        //dd($user);
-        $user->save();
-        return $user;
+        // Assurez-vous que la référence pointe vers la collection 'users'
+        $firebase = app('firebase.database');
+        $reference = $firebase->getReference('users');  // Pointe vers la collection 'users'
+
+        // Ajout de l'utilisateur dans Firebase
+        $newUser = $reference->push($data);  // push() ajoute un nouvel utilisateur dans Firebase
+
+        return $newUser->getValue();  // Retourne les données de l'utilisateur ajouté
     }
     public function all($role = null)
     {

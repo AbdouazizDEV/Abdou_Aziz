@@ -25,10 +25,14 @@ class FirebaseReferentielRepository
     } */
     public function create(array $data)
     {
-        $referentiel = new FirebaseReferentiel($data);
-        $referentiel->save();
+        // Assurez-vous que la référence pointe vers la collection 'referentiels'
+        $firebase = app('firebase.database');
+        $reference = $firebase->getReference('referentiels');  // Pointe vers la collection 'referentiels'
 
-        return $referentiel;
+        // Ajout du référentiel dans Firebase
+        $newReferentiel = $reference->push($data);  // push() ajoute un nouveau référentiel
+
+        return $newReferentiel->getValue();  // Retourne les données du référentiel ajouté
     }
 
     public function all($statut = null): array

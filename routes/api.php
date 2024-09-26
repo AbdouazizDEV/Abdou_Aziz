@@ -14,17 +14,20 @@ Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('login'); // Login
     Route::post('/logout', [AuthController::class, 'logout']); // Logout
 });
+Route::prefix('v1')->group(function () {
+    Route::middleware(['auth:api', 'check.role:admin'])->group(function () {
+        Route::post('/users/forAdmin', [UserController::class, 'storeAdmin']);
+        Route::post('/users/import', [UserController::class, 'import']);
+        Route::get('/users', [UserController::class, 'index']); // Route pour lister les utilisateurs
+        Route::get('/users/{id}', [UserController::class, 'show']); // Route pour afficher un utilisateur
+        Route::put('/users/{id}', [UserController::class, 'update']); // Route pour mettre à jour un utilisateur
 
-Route::middleware(['auth:api', 'check.role:admin'])->group(function () {
-    Route::post('/users/forAdmin', [UserController::class, 'storeAdmin']);
-    Route::get('/users', [UserController::class, 'index']); // Route pour lister les utilisateurs
-    Route::get('/users/{id}', [UserController::class, 'show']); // Route pour afficher un utilisateur
-    Route::put('/users/{id}', [UserController::class, 'update']); // Route pour mettre à jour un utilisateur
-
+    });
 });
 Route::prefix('v1')->group(function () {
     Route::middleware(['auth:api', 'check.role:admin,manager'])->group(function () {
         Route::post('/referentiels', [ReferentielController::class, 'store']);
+        Route::post('/referentiels/import', [ReferentielController::class, 'import']); // Route pour importer les référentiels
         Route::get('/referentiels', [ReferentielController::class, 'index']);
         Route::get('/referentiels/{id}', [ReferentielController::class, 'show']);
         Route::patch('/referentiels/{id}', [ReferentielController::class, 'update']);
@@ -45,18 +48,23 @@ Route::prefix('v1')->middleware(['auth:api', 'check.role:admin,manager'])->group
 /* Route::middleware(['firebase.auth'])->group(function () {
     // Vos routes ici
 }); */
+Route::prefix('v1')->group(function () {
 
 Route::middleware(['auth:api', 'check.role:cm'])->group(function () {
     Route::post('/users/forCm', [UserController::class, 'storeCm']);
 });
+});
+Route::prefix('v1')->group(function () {
 
 Route::middleware(['auth:api', 'check.role:manager'])->group(function () {
     Route::post('/users/forManager', [UserController::class, 'storeManager']);
 });
-
+});
 use App\Http\Controllers\NotificationController;
+Route::prefix('v1')->group(function () {
 
 Route::get('/test-firebase', function (FirebaseService $firebaseService) {
     $result = $firebaseService->testConnection();
     return response()->json($result);
+});
 });

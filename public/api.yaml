@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Gestion Apprenant API
-  description: API pour la gestion des apprenants et des référentiels
+  description: API pour la gestion des apprenants, des référentiels et des promotions
   version: 1.0.0
 servers:
   - url: http://localhost:8000/api/v1
@@ -64,6 +64,8 @@ paths:
     get:
       summary: List all users
       operationId: indexUsers
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: A list of users
@@ -80,6 +82,8 @@ paths:
     get:
       summary: Get a user by ID
       operationId: showUser
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -99,6 +103,8 @@ paths:
     put:
       summary: Update a user by ID
       operationId: updateUser
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -136,6 +142,8 @@ paths:
     get:
       summary: List all referentiels
       operationId: indexReferentiels
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: A list of referentiels
@@ -152,6 +160,8 @@ paths:
     get:
       summary: Get a referentiel by ID
       operationId: showReferentiel
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -171,6 +181,8 @@ paths:
     patch:
       summary: Update a referentiel by ID
       operationId: updateReferentiel
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -192,6 +204,8 @@ paths:
     delete:
       summary: Delete a referentiel by ID
       operationId: destroyReferentiel
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -208,6 +222,8 @@ paths:
     get:
       summary: List archived referentiels
       operationId: archivedReferentiels
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: A list of archived referentiels
@@ -219,6 +235,101 @@ paths:
                   $ref: '#/components/schemas/Referentiel'
         '401':
           description: Unauthorized
+
+  /promotions:
+    post:
+      summary: Create a new promotion
+      operationId: storePromotion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Promotion'
+      responses:
+        '201':
+          description: Promotion created successfully
+        '400':
+          description: Bad request
+
+    get:
+      summary: List all promotions
+      operationId: indexPromotions
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of promotions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Promotion'
+        '401':
+          description: Unauthorized
+
+  /promotions/{id}:
+    get:
+      summary: Get a promotion by ID
+      operationId: showPromotion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A promotion object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Promotion'
+        '404':
+          description: Promotion not found
+
+    patch:
+      summary: Update a promotion by ID
+      operationId: updatePromotion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Promotion'
+      responses:
+        '200':
+          description: Promotion updated successfully
+        '404':
+          description: Promotion not found
+
+    delete:
+      summary: Delete a promotion by ID
+      operationId: destroyPromotion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Promotion deleted successfully
+        '404':
+          description: Promotion not found
 
   /users/forCm:
     post:
@@ -252,7 +363,30 @@ paths:
         '400':
           description: Bad request
 
+  /test-firebase:
+    get:
+      summary: Test Firebase connection
+      operationId: testFirebase
+      responses:
+        '200':
+          description: Successful connection test
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '500':
+          description: Internal server error
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     User:
       type: object
@@ -285,3 +419,24 @@ components:
           type: array
           items:
             type: string
+
+    Promotion:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        referentiel_id:
+          type: string
+
+security:
+  - bearerAuth: []

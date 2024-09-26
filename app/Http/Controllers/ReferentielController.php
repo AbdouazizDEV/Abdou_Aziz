@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\ReferentielService;
+use App\Imports\ReferentielsImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ReferentielController extends Controller
 {
@@ -13,7 +15,18 @@ class ReferentielController extends Controller
     {
         $this->referentielService = $referentielService;
     }
+    public function import(Request $request)
+    {
+        // Valider le fichier Excel
+        $request->validate([
+            'file' => 'required|mimes:xls,xlsx,csv',
+        ]);
 
+        // Importer les référentiels
+        Excel::import(new ReferentielsImport, $request->file('file'));
+
+        return response()->json(['message' => 'Référentiels importés avec succès'], 200);
+    }
     public function store(Request $request)
     {
         $data = $request->validate([

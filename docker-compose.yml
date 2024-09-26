@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: apprenant_app
+    environment:
+      APP_ENV: local
+      APP_DEBUG: 'true'
+      APP_KEY: ${APP_KEY}
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ApprenantDB
+      DB_USERNAME: AbdouAziz
+      DB_PASSWORD: Abdou@ziz10
+      FIREBASE_CREDENTIALS: /var/www/html/storage/app/apprenant-laravel-firebase-adminsdk-3pqj9-315a6c8b89.json
+      FIREBASE_DATABASE_URL: https://apprenant-laravel-default-rtdb.firebaseio.com/
+      USER_DATA_SOURCE: firebase
+    volumes:
+      - /var/www/html/Gestion_Apprenant_laravel/Apprenant
+      - /var/www/html/Gestion_Apprenant_laravel/Apprenant/storage/app/apprenant-laravel-firebase-adminsdk-3pqj9-315a6c8b89.json
+    ports:
+      - "9000:9000" # PHP-FPM utilise le port 9000
+    networks:
+      - laravel
+
+  nginx:
+    image: nginx:alpine
+    container_name: apprenant_nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - /var/www/html/Gestion_Apprenant_laravel/Apprenant/nginx/default.conf # Assurez-vous que ce fichier existe et est bien référencé
+      - /var/www/html/Gestion_Apprenant_laravel/Apprenant # Chemin absolu local vers le code de l'application
+    depends_on:
+      - app # Le service nginx attend que PHP-FPM soit prêt
+    networks:
+      - laravel
+
+networks:
+  laravel:
+    driver: bridge

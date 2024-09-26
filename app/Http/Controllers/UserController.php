@@ -8,6 +8,8 @@ use App\Http\Requests\User\StoreUserRequest3;
 use App\Http\Requests\User\StoreUserRequest4;
 use App\Services\UserService;
 use Illuminate\Http\Request;
+use App\Imports\UsersImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class UserController extends Controller
 {
@@ -41,7 +43,18 @@ class UserController extends Controller
 
         return response()->json($users, 200);
     }
+    public function import(Request $request)
+    {
+        // Valider le fichier Excel
+        $request->validate([
+            'file' => 'required|mimes:xls,xlsx,csv',
+        ]);
 
+        // Importer les utilisateurs
+        Excel::import(new UsersImport, $request->file('file'));
+
+        return response()->json(['message' => 'Utilisateurs importés avec succès'], 200);
+    }
 
 
     // Pour un Admin (role_id = 1)

@@ -173,7 +173,7 @@ return [
         App\Providers\RepositoryServiceProvider::class,
         Kreait\Laravel\Firebase\ServiceProvider::class,
         App\Providers\PromotionServiceProvider::class,
-        
+        Maatwebsite\Excel\ExcelServiceProvider::class,
     ])->toArray(),
         'user_data_source' => env('USER_DATA_SOURCE', 'firebase'), // valeur par défaut si non définie
 
@@ -190,7 +190,7 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
         // 'Example' => App\Facades\Example::class,
-        
+        'Excel' => Maatwebsite\Excel\Facades\Excel::class,
     ])->toArray(),
 
 ];

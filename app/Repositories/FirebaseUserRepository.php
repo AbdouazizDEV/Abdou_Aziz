@@ -16,61 +16,67 @@ class FirebaseUserRepository
 
     public function create(array $data)
     {
-        // Assurez-vous que la référence pointe vers la collection 'users'
         $firebase = app('firebase.database');
-        $reference = $firebase->getReference('users');  // Pointe vers la collection 'users'
+        $reference = $firebase->getReference('users');
+        
+        // Ajout du nouvel utilisateur dans Firebase
+        $newUser = $reference->push($data);
+        
+        // Retourne les données avec l'ID généré
+        $newData = $newUser->getValue();
+        $newData['id'] = $newUser->getKey();
 
-        // Ajout de l'utilisateur dans Firebase
-        $newUser = $reference->push($data);  // push() ajoute un nouvel utilisateur dans Firebase
-
-        return $newUser->getValue();  // Retourne les données de l'utilisateur ajouté
+        return $newData;
     }
+
     public function all($role = null)
     {
         $firebase = app('firebase.database');
         $reference = $firebase->getReference('users');
-        //dd($reference);http://localhost:8000/api/users?role=admin
-        // Appliquer le filtre si le rôle est spécifié
+
         if ($role) {
-            //dd($role);
-            $usersSnapshot = $reference->orderByChild('role_id')->equalTo($role)->getSnapshot();
-            dd($usersSnapshot);
+            // Filtre par rôle si fourni
+            $query = $reference->orderByChild('role_id')->equalTo($role);
         } else {
-            $usersSnapshot = $reference->getSnapshot();
+            $query = $reference;
         }
 
-        $users = $usersSnapshot->getValue();
+        $snapshot = $query->getSnapshot()->getValue() ?? [];
+        $users = [];
 
-        return $users ?: [];
+        foreach ($snapshot as $key => $data) {
+            $data['id'] = $key;  // Ajoute l'ID Firebase
+            $users[] = (new FirebaseUser())->fromArray($data);
+        }
+
+        return $users;
     }
+
     public function find($id)
     {
         $firebase = app('firebase.database');
         $reference = $firebase->getReference('users/' . $id);
-        $snapshot = $reference->getSnapshot();
-        $user = $snapshot->getValue();
-    
-        return $user ?: null;
-    }
-    public function update($id, array $data)
-{
-    //dd($data, $id);
-    // Récupérer l'utilisateur dans Firebase
-    $firebase = app('firebase.database');
-    $reference = $firebase->getReference('users/' . $id);
-    $snapshot = $reference->getSnapshot();
-    //dd($snapshot);
-    if (!$snapshot->exists()) {
-        // Si l'utilisateur n'existe pas, renvoyer null ou lever une exception
+        $data = $reference->getSnapshot()->getValue();
+
+        if ($data) {
+            $data['id'] = $id;
+            return (new FirebaseUser())->fromArray($data);
+        }
+
         return null;
     }
 
-    // Mettre à jour les données de l'utilisateur
-    $reference->update($data);
+    public function update($id, array $data)
+    {
+        $firebase = app('firebase.database');
+        $reference = $firebase->getReference('users/' . $id);
 
-    // Récupérer les données mises à jour et les retourner
-    $updatedSnapshot = $reference->getSnapshot();
-    return $updatedSnapshot->getValue();
-}
+        // Mettre à jour l'utilisateur dans Firebase
+        $reference->update($data);
 
+        $updatedData = $reference->getSnapshot()->getValue();
+        $updatedData['id'] = $id;  // Ajoute l'ID Firebase
+
+        return (new FirebaseUser())->fromArray($updatedData);
+    }
 }

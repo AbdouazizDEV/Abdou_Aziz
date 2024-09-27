@@ -16,49 +16,96 @@ class FirebasePromotionRepository
 
     public function create(array $data)
     {
-        // Assurez-vous que la référence pointe bien vers 'promotions'
-    $firebase = app('firebase.database');
-    $reference = $firebase->getReference('promotions');  // Ceci doit pointer vers la collection 'promotions'
-    
-    // Ajoutez la promotion dans Firebase
-    $newPromotion = $reference->push($data);  // push() ajoute un nouvel élément
-    
-    return $newPromotion->getValue();
+        $firebase = app('firebase.database');
+        $reference = $firebase->getReference('promotions');
+        
+        // Ajoute la promotion dans Firebase avec un état par défaut
+        $data['etat'] = 'Inactif';  // L'état par défaut est Inactif
+        $newPromotion = $reference->push($data);
+        
+        // Récupère et retourne la nouvelle promotion avec son ID généré
+        $newData = $newPromotion->getValue();
+        $newData['id'] = $newPromotion->getKey();
+
+        return $newData;
     }
 
     public function all($etat = null): array
     {
-        return FirebasePromotion::getAll($etat);
+        $firebase = app('firebase.database');
+        $reference = $firebase->getReference('promotions');
+
+        if ($etat) {
+            // Filtre les promotions par état si un état est fourni
+            $query = $reference->orderByChild('etat')->equalTo($etat);
+        } else {
+            $query = $reference;
+        }
+
+        $snapshot = $query->getSnapshot()->getValue() ?? [];
+        $promotions = [];
+
+        foreach ($snapshot as $key => $data) {
+            $data['id'] = $key;  // Ajoute l'ID Firebase comme clé
+            $promotions[] = (new FirebasePromotion())->fromArray($data);
+        }
+
+        return $promotions;
     }
 
     public function find($id)
     {
-        return FirebasePromotion::findById($id);
+        $firebase = app('firebase.database');
+        $reference = $firebase->getReference('promotions/' . $id);
+        $data = $reference->getSnapshot()->getValue();
+
+        if ($data) {
+            $data['id'] = $id;  // Ajoute l'ID à la promotion récupérée
+            return (new FirebasePromotion())->fromArray($data);
+        }
+
+        return null;
     }
 
-    public function update($id, array $data): bool|FirebasePromotion
+    public function update($id, array $data)
     {
-        $promotion = FirebasePromotion::findById($id);
-    
-        if (!$promotion) {
-            throw new \Exception('Promotion non trouvée');
-        }
-    
-        $promotion->update($data);
-    
-        return $promotion;
+        $firebase = app('firebase.database');
+        $reference = $firebase->getReference('promotions/' . $id);
+        
+        // Met à jour les données de la promotion dans Firebase
+        $reference->update($data);
+        
+        // Récupère les données mises à jour pour vérification
+        $updatedData = $reference->getSnapshot()->getValue();
+        $updatedData['id'] = $id;  // Ajoute l'ID Firebase
+
+        return (new FirebasePromotion())->fromArray($updatedData);
     }
 
     public function delete($id)
     {
-        $promotion = FirebasePromotion::findById($id);
+        $firebase = app('firebase.database');
+        $reference = $firebase->getReference('promotions/' . $id);
 
-        if (!$promotion) {
-            throw new \Exception('Promotion non trouvée');
-        }
-
-        $promotion->delete();
+        // Supprime la promotion dans Firebase
+        $reference->remove();
 
         return true;
+    }
+
+    public function deactivateOtherPromotions($currentPromotionId)
+    {
+        $firebase = app('firebase.database');
+        $reference = $firebase->getReference('promotions');
+
+        // Recherche toutes les promotions actives
+        $promotions = $reference->orderByChild('etat')->equalTo('Actif')->getSnapshot()->getValue() ?? [];
+
+        // Désactive les autres promotions
+        foreach ($promotions as $key => $promotion) {
+            if ($key !== $currentPromotionId) {
+                $firebase->getReference('promotions/' . $key)->update(['etat' => 'Inactif']);
+            }
+        }
     }
 }

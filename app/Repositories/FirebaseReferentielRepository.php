@@ -5,7 +5,7 @@ namespace App\Repositories;
 use App\Models\FirebaseReferentiel;
 use Kreait\Firebase\Database;
 
-class FirebaseReferentielRepository 
+class FirebaseReferentielRepository
 {
     protected $database;
 
@@ -14,68 +14,80 @@ class FirebaseReferentielRepository
         $this->database = $database;
     }
 
-   /*  public function create(array $data)
-    {
-        // Correction de la référence avec .json à la fin
-        //dd($data);
-        $reference = $this->database->getReference();  // Ajoutez .json ici
-        $newReferentiel = $reference->push($data);
-
-        return $newReferentiel->getValue();
-    } */
     public function create(array $data)
     {
-        // Assurez-vous que la référence pointe vers la collection 'referentiels'
         $firebase = app('firebase.database');
-        $reference = $firebase->getReference('referentiels');  // Pointe vers la collection 'referentiels'
+        $reference = $firebase->getReference('referentiels');
+        
+        // Ajout du nouveau référentiel dans Firebase
+        $newReferentiel = $reference->push($data);
+        
+        // Retourne les données du référentiel avec son ID Firebase
+        $newData = $newReferentiel->getValue();
+        $newData['id'] = $newReferentiel->getKey();
 
-        // Ajout du référentiel dans Firebase
-        $newReferentiel = $reference->push($data);  // push() ajoute un nouveau référentiel
-
-        return $newReferentiel->getValue();  // Retourne les données du référentiel ajouté
+        return $newData;
     }
 
     public function all($statut = null): array
     {
-        return FirebaseReferentiel::getAll($statut);  // Appel de la méthode du modèle
+        $firebase = app('firebase.database');
+        $reference = $firebase->getReference('referentiels');
+
+        if ($statut) {
+            // Filtrer par statut si fourni
+            $query = $reference->orderByChild('statut')->equalTo($statut);
+        } else {
+            $query = $reference;
+        }
+
+        $snapshot = $query->getSnapshot()->getValue() ?? [];
+        $referentiels = [];
+
+        foreach ($snapshot as $key => $data) {
+            $data['id'] = $key;  // Ajoute l'ID Firebase
+            $referentiels[] = (new FirebaseReferentiel())->fromArray($data);
+        }
+
+        return $referentiels;
     }
 
     public function find($id)
     {
-        // $reference = $this->database->getReference('referentiels/' . $id . '.json');  // Ajoutez .json ici
-        // return $reference->getSnapshot()->getValue() ?: null;
-        return FirebaseReferentiel::findById($id);  // Appel de la méthode du modèle
+        $firebase = app('firebase.database');
+        $reference = $firebase->getReference('referentiels/' . $id);
+        $data = $reference->getSnapshot()->getValue();
+
+        if ($data) {
+            $data['id'] = $id;
+            return (new FirebaseReferentiel())->fromArray($data);
+        }
+
+        return null;
     }
 
-    public function update($id, array $data): bool|FirebaseReferentiel
+    public function update($id, array $data)
     {
-        // Trouver le référentiel avec l'ID donné
-        $referentiel = FirebaseReferentiel::findById($id);
-    
-        if (!$referentiel) {
-            throw new \Exception('Référentiel non trouvé');
-        }
-    
-        // Appeler la méthode d'instance update
-        $referentiel->update($data);
-    
-        return $referentiel;
+        $firebase = app('firebase.database');
+        $reference = $firebase->getReference('referentiels/' . $id);
+
+        // Mettre à jour les données du référentiel
+        $reference->update($data);
+
+        $updatedData = $reference->getSnapshot()->getValue();
+        $updatedData['id'] = $id;  // Ajoute l'ID Firebase
+
+        return (new FirebaseReferentiel())->fromArray($updatedData);
     }
-    
 
     public function delete($id)
     {
-        // Trouver le référentiel avec l'ID donné
-        $referentiel = FirebaseReferentiel::findById($id);
+        $firebase = app('firebase.database');
+        $reference = $firebase->getReference('referentiels/' . $id);
 
-        if (!$referentiel) {
-            throw new \Exception('Référentiel non trouvé');
-        }
-
-        // Appeler la méthode d'instance delete() pour supprimer le référentiel
-        $referentiel->delete();
+        // Supprime le référentiel dans Firebase
+        $reference->remove();
 
         return true;
     }
-
 }

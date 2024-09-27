@@ -46,4 +46,11 @@ class MySQLPromotionRepository implements PromotionRepositoryInterface
         }
         return false;
     }
+
+    public function deactivateOtherPromotions($currentPromotionId)
+    {
+        Promotion::where('id', '!=', $currentPromotionId)
+                 ->where('etat', 'Actif')
+                 ->update(['etat' => 'Inactif']);
+    }
 }

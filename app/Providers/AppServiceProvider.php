@@ -20,7 +20,9 @@ use App\Repositories\FirebaseReferentielRepository;
 use App\Repositories\MySQLPromotionRepository;
 use App\Repositories\ReferentielRepository;
 use App\Repositories\MySQLReferentielRepository;
-
+use App\Repositories\Contracts\ApprenantRepositoryInterface;
+use App\Repositories\MySQLApprenantRepository;
+use App\Repositories\FirebaseApprenantRepository;
 use Kreait\Firebase\Database\UrlBuilder\DefaultUrlBuilder;
 
 class AppServiceProvider extends ServiceProvider
@@ -72,6 +74,12 @@ class AppServiceProvider extends ServiceProvider
         } else {
             $this->app->bind(PromotionRepositoryInterface::class, MySQLPromotionRepository::class);
         }
+        
+        $this->app->bind(ApprenantRepositoryInterface::class, function ($app) {
+            return env('APPRENANT_DATA_SOURCE', 'mysql') === 'firebase'
+                ? new FirebaseApprenantRepository()
+                : new MySQLApprenantRepository();
+        });
         
     }
 

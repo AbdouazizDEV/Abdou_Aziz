@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class CheckRole
 {
-    public function handle(Request $request, Closure $next, $role)
+    public function handle(Request $request, Closure $next, ...$roles)
     {
         $user = $request->user(); // Récupère l'utilisateur connecté
 
@@ -20,15 +20,14 @@ class CheckRole
             'apprenant' => 5,
         ];
 
-        // Permissions associées aux rôles
-        $rolePermissions = [
-            1 => [1, 2, 3, 4, 5],  // Admin peut créer tous les rôles
-            2 => [2, 3, 4, 5],     // Manager peut créer manager, coach, cm, apprenant
-            4 => [5],              // CM peut créer uniquement des apprenants
-        ];
+        // Si l'utilisateur n'est pas connecté ou ne possède pas de rôle valide
+        if (!$user || !in_array($user->role_id, array_values($roleMapping))) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
 
-        // Vérifie si l'utilisateur a la permission nécessaire
-        if (!$user || !isset($rolePermissions[$user->role_id]) || !in_array($roleMapping[$role], $rolePermissions[$user->role_id])) {
+        // Vérification des rôles
+        $allowedRoles = array_map(fn($role) => $roleMapping[$role], $roles);
+        if (!in_array($user->role_id, $allowedRoles)) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 

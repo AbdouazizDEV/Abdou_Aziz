@@ -1,91 +1,170 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "API Documentation",
-    "version": "v1",
-    "description": "API documentation for managing users, referentiels, promotions, and authentication."
+    "title": "Laravel API",
+    "description": "Documentation for Laravel API with roles and authentication.",
+    "version": "1.0.0",
+    "contact": {
+      "email": "contact@example.com"
+    }
   },
   "servers": [
     {
-      "url": "http://localhost:8000/api/v1"
+      "url": "http://localhost:8000/api/v1",
+      "description": "Local API server"
     }
   ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Login": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        }
+      },
+      "Referentiel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "Promotion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "Apprenant": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "InactiveApprenantRequest": {
+        "type": "object",
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": [
+          "startDate",
+          "endDate"
+        ]
+      },
+      "EtatRequest": {
+        "type": "object",
+        "properties": {
+          "etat": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "etat"
+        ]
+      }
+    }
+  },
   "paths": {
     "/login": {
       "post": {
-        "summary": "Login",
-        "operationId": "login",
+        "summary": "User login",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email"
-                  },
-                  "password": {
-                    "type": "string",
-                    "format": "password"
-                  }
-                }
+                "$ref": "#/components/schemas/Login"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Login successful",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "access_token": {
-                      "type": "string"
-                    },
-                    "token_type": {
-                      "type": "string"
-                    },
-                    "expires_at": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
+            "description": "Successful login"
           }
         }
       }
     },
     "/logout": {
       "post": {
-        "summary": "Logout",
-        "operationId": "logout",
+        "summary": "User logout",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "responses": {
-          "204": {
-            "description": "Logout successful"
+          "200": {
+            "description": "Successful logout"
           }
         }
       }
     },
     "/users": {
       "get": {
-        "summary": "List all users",
-        "operationId": "listUsers",
+        "summary": "Get all users (Admin only)",
         "security": [
           {
-            "bearerAuth": []
+            "BearerAuth": []
           }
         ],
         "responses": {
           "200": {
-            "description": "A list of users",
+            "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
@@ -102,21 +181,25 @@
     },
     "/users/{id}": {
       "get": {
-        "summary": "Get a user by ID",
-        "operationId": "getUserById",
+        "summary": "Get user by ID (Admin only)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "integer"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "A user object",
+            "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
@@ -124,22 +207,23 @@
                 }
               }
             }
-          },
-          "404": {
-            "description": "User not found"
           }
         }
       },
       "put": {
-        "summary": "Update a user by ID",
-        "operationId": "updateUser",
+        "summary": "Update user by ID (Admin only)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "integer"
             }
           }
         ],
@@ -155,21 +239,24 @@
         },
         "responses": {
           "200": {
-            "description": "User updated successfully"
-          },
-          "404": {
-            "description": "User not found"
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
           }
         }
       }
     },
     "/users/forAdmin": {
       "post": {
-        "summary": "Create a user for admin",
-        "operationId": "createUserForAdmin",
+        "summary": "Create new admin user (Admin only)",
         "security": [
           {
-            "bearerAuth": []
+            "BearerAuth": []
           }
         ],
         "requestBody": {
@@ -183,19 +270,25 @@
           }
         },
         "responses": {
-          "201": {
-            "description": "User created successfully"
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/users/import": {
+    "/users/forCm": {
       "post": {
-        "summary": "Import users",
-        "operationId": "importUsers",
+        "summary": "Create new CM user (CM only)",
         "security": [
           {
-            "bearerAuth": []
+            "BearerAuth": []
           }
         ],
         "requestBody": {
@@ -203,33 +296,129 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "array",
-                "items": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
                   "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/forManager": {
+      "post": {
+        "summary": "Create new manager user (Manager only)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/import": {
+      "post": {
+        "summary": "Import users (Admin only)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
                 }
               }
             }
           }
         },
         "responses": {
-          "201": {
-            "description": "Users imported successfully"
+          "200": {
+            "description": "Successful operation"
           }
         }
       }
     },
     "/referentiels": {
-      "get": {
-        "summary": "List all referentiels",
-        "operationId": "listReferentiels",
+      "post": {
+        "summary": "Create new referentiel (Admin and Manager only)",
         "security": [
           {
-            "bearerAuth": []
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Referentiel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Referentiel"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Get all referentiels (Admin and Manager only)",
+        "security": [
+          {
+            "BearerAuth": []
           }
         ],
         "responses": {
           "200": {
-            "description": "A list of referentiels",
+            "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
@@ -242,49 +431,29 @@
             }
           }
         }
-      },
-      "post": {
-        "summary": "Create a referentiel",
-        "operationId": "createReferentiel",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Referentiel"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Referentiel created successfully"
-          }
-        }
       }
     },
     "/referentiels/{id}": {
       "get": {
-        "summary": "Get a referentiel by ID",
-        "operationId": "getReferentielById",
+        "summary": "Get referentiel by ID (Admin and Manager only)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "integer"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "A referentiel object",
+            "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
@@ -292,22 +461,23 @@
                 }
               }
             }
-          },
-          "404": {
-            "description": "Referentiel not found"
           }
         }
       },
-      "patch": {
-        "summary": "Update a referentiel by ID",
-        "operationId": "updateReferentiel",
+      "put": {
+        "summary": "Update referentiel by ID (Admin and Manager only)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "integer"
             }
           }
         ],
@@ -323,42 +493,59 @@
         },
         "responses": {
           "200": {
-            "description": "Referentiel updated successfully"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete a referentiel by ID",
-        "operationId": "deleteReferentiel",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Referentiel"
+                }
+              }
             }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Referentiel deleted successfully"
           }
         }
       }
     },
     "/promotions": {
-      "get": {
-        "summary": "List all promotions",
-        "operationId": "listPromotions",
+      "post": {
+        "summary": "Create new promotion (Admin and Manager only)",
         "security": [
           {
-            "bearerAuth": []
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Promotion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Promotion"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Get all promotions (Admin and Manager only)",
+        "security": [
+          {
+            "BearerAuth": []
           }
         ],
         "responses": {
           "200": {
-            "description": "A list of promotions",
+            "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
@@ -371,49 +558,29 @@
             }
           }
         }
-      },
-      "post": {
-        "summary": "Create a promotion",
-        "operationId": "createPromotion",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Promotion"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Promotion created successfully"
-          }
-        }
       }
     },
     "/promotions/{id}": {
       "get": {
-        "summary": "Get a promotion by ID",
-        "operationId": "getPromotionById",
+        "summary": "Get promotion by ID (Admin and Manager only)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "integer"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "A promotion object",
+            "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
@@ -421,22 +588,23 @@
                 }
               }
             }
-          },
-          "404": {
-            "description": "Promotion not found"
           }
         }
       },
-      "patch": {
-        "summary": "Update a promotion by ID",
-        "operationId": "updatePromotion",
+      "put": {
+        "summary": "Update promotion by ID (Admin and Manager only)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "integer"
             }
           }
         ],
@@ -452,98 +620,213 @@
         },
         "responses": {
           "200": {
-            "description": "Promotion updated successfully"
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Promotion"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/apprenants": {
+      "post": {
+        "summary": "Create new apprenant (Admin, Manager, and CM only)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Apprenant"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Apprenant"
+                }
+              }
+            }
           }
         }
       },
-      "delete": {
-        "summary": "Delete a promotion by ID",
-        "operationId": "deletePromotion",
+      "get": {
+        "summary": "Get all apprenants (Admin, Manager, and CM only)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Apprenant"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/apprenants/{id}": {
+      "get": {
+        "summary": "Get apprenant by ID (Admin, Manager, and CM only)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "integer"
             }
           }
         ],
         "responses": {
-          "204": {
-            "description": "Promotion deleted successfully"
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "User": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string",
-            "format": "email"
-          },
-          "password": {
-            "type": "string",
-            "format": "password"
-          },
-          "roles": {
-            "type": "array",
-            "items": {
-              "type": "string"
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Apprenant"
+                }
+              }
             }
           }
         }
       },
-      "Referentiel": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
+      "put": {
+        "summary": "Update apprenant by ID (Admin, Manager, and CM only)",
+        "security": [
+          {
+            "BearerAuth": []
           }
-        }
-      },
-      "Promotion": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "referentielId": {
-            "type": "string"
-          },
-          "year": {
-            "type": "integer"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Apprenant"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Apprenant"
+                }
+              }
+            }
           }
         }
       }
     },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
+    "/apprenants/{id}/inactivate": {
+      "put": {
+        "summary": "Inactivate apprenant (Admin, Manager, and CM only)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EtatRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          }
+        }
+      }
+    },
+    "/apprenants/inactive": {
+      "post": {
+        "summary": "Get all inactive apprenants (Admin, Manager, and CM only)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InactiveApprenantRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Apprenant"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

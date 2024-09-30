@@ -18,5 +18,11 @@ class DatabaseSeeder extends Seeder
             ReferentielSeeder::class,
             PromotionSeeder::class,
         ]);
+        $this->call(ApprenantsSeeder::class);
+        $this->call(ArtisansSeeder::class);
+        $this->call(CompetencesSeeder::class);
+        $this->call(ModulesSeeder::class);
+        $this->call(NotesSeeder::class);
+        $this->call(ArchivesSeeder::class);
     }
 }

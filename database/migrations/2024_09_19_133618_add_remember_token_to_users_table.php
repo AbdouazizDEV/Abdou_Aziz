@@ -12,7 +12,7 @@ return new class extends Migration
     public function up()
 {
     Schema::table('users', function (Blueprint $table) {
-        $table->string('remember_token', 100)->nullable()->after('password');
+        $table->dropColumn('remember_token');
     });
 }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down()
 {
     Schema::table('users', function (Blueprint $table) {
-        $table->dropColumn('remember_token');
+        $table->string('remember_token', 100)->nullable();
     });
 }
 };

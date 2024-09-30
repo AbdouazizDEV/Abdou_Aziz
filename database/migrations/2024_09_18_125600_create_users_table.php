@@ -22,7 +22,8 @@ return new class extends Migration
             $table->string('photo')->nullable();
             $table->string('statut')->default('actif');
             $table->string('password');
-            $table->rememberToken();
+            $table->string('remember_token')->nullable();
+            //$table->rememberToken();
             $table->timestamps();
 
             $table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');

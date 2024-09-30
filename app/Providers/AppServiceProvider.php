@@ -24,7 +24,9 @@ use App\Repositories\Contracts\ApprenantRepositoryInterface;
 use App\Repositories\MySQLApprenantRepository;
 use App\Repositories\FirebaseApprenantRepository;
 use Kreait\Firebase\Database\UrlBuilder\DefaultUrlBuilder;
-
+use App\Repositories\MySQLNotesRepository;
+use App\Repositories\FirebaseNotesRepository;
+use App\Repositories\Contracts\NotesRepositoryInterface;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -79,6 +81,21 @@ class AppServiceProvider extends ServiceProvider
             return env('APPRENANT_DATA_SOURCE', 'mysql') === 'firebase'
                 ? new FirebaseApprenantRepository()
                 : new MySQLApprenantRepository();
+        });
+        // Choisir la source de données pour Apprenants (MySQL ou Firebase)
+        $this->app->bind(ApprenantRepositoryInterface::class, function () {
+            if (env('APPRENANT_DATA_SOURCE', 'mysql') === 'firebase') {
+                return new FirebaseApprenantRepository();
+            }
+            return new MySQLApprenantRepository();
+        });
+
+        // Choisir la source de données pour Notes (MySQL ou Firebase)
+        $this->app->bind(NotesRepositoryInterface::class, function () {
+            if (env('NOTE_DATA_SOURCE', 'mysql') === 'firebase') {
+                return new FirebaseNotesRepository();
+            }
+            return new MySQLNotesRepository();
         });
         
     }

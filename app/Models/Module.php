@@ -15,4 +15,15 @@ class Module extends Model
     {
         return $this->belongsTo(Competence::class);
     }
+     // Relation avec les notes
+     public function notes()
+     {
+         return $this->hasMany(Note::class);
+     }
+ 
+     // Relation avec le référentiel
+     public function referentiel()
+     {
+         return $this->belongsTo(Referentiel::class);
+     }
 }

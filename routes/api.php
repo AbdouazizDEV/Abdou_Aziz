@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\NotesController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
@@ -64,6 +65,15 @@ Route::prefix('v1')->group(function () {
             Route::post('/users/forCm', [UserController::class, 'storeCm']);
         });
 
+        Route::middleware(['auth:api'])->group(function () {
+            Route::post('/notes/modules/{id}', [NotesController::class, 'addNotesToModule']);// Ajouter une note à un groupe d'apprenants pour un module donné
+            Route::post('/notes/apprenants', [NotesController::class, 'addNotesToApprenant']);// Ajouter des notes de plusieurs modules à un apprenant
+            Route::patch('/notes/apprenants/{id}', [NotesController::class, 'updateNotesForApprenant']);// Mise a jour des notes d'un apprenant
+            Route::get('/notes/referentiels/{id}', [NotesController::class, 'listNotesForReferentiel']);// Lister les notes d'un érentiel pour la promotion en cours
+            Route::get('/notes/export/referentiels/{id}', [NotesController::class, 'exportNotesForReferentiel']);// Exporter les notes d'un érentiel en PDF
+            Route::get('/notes/export/apprenants/{id}', [NotesController::class, 'exportNotesForApprenant']);// Exporter les notes d'un apprenant en PDF
+        });
+        
         // Routes spécifiques à Manager
         Route::middleware('check.role:manager')->group(function () {
             Route::post('/users/forManager', [UserController::class, 'storeManager']);

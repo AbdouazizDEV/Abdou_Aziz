@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - ./Apprenant:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_KEY=base64:HPuInvzQ9JSgh+xM/FohNU+Sj+ZSGYN1LQksvHVXbWI=
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=gestion_apprenant
+      - DB_USERNAME=thomas
+      - DB_PASSWORD=aadeldiablo10
+    depends_on:
+      - db
+    networks:
+      - laravel-network
+
+  db:
+    image: postgres:latest
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_DB=gestion_apprenant
+      - POSTGRES_USER=thomas
+      - POSTGRES_PASSWORD=aadeldiablo10
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - laravel-network
+
+volumes:
+  db_data:
+
+networks:
+  laravel-network:
+    driver: bridge

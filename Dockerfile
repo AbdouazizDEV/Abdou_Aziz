@@ -1,4 +1,3 @@
-# Utiliser l'image PHP avec FPM
 FROM php:8.2-fpm
 
 # Installer les dépendances nécessaires
@@ -6,12 +5,20 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
-    nginx \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd
+    libpq-dev
 
-# Copier la configuration de Nginx
-COPY ./nginx.conf /etc/nginx/nginx.conf
+# Copier le code source dans le conteneur
+COPY . /var/www/html
+
+# Changer les permissions du répertoire
+RUN chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
+
+# Changer le répertoire de travail
+WORKDIR /var/www/html
+
+# Installer les dépendances PHP avec Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN composer install --no-dev --optimize-autoloader
 
 # Créer un répertoire pour votre application
 RUN mkdir -p /var/www/html

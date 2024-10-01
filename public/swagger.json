@@ -8,12 +8,7 @@
       "email": "contact@example.com"
     }
   },
-  "servers": [
-    {
-      "url": "http://localhost:8000/api/v1",
-      "description": "Local API server"
-    }
-  ],
+  
   "components": {
     "securitySchemes": {
       "BearerAuth": {

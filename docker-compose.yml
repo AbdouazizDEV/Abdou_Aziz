@@ -1,45 +1,58 @@
-version: '3.8'
-
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "9000:9000" 
+    container_name: app
     volumes:
-      - /var/www/html
+      - ~/Gestion_Apprenant_laravel/Apprenant:/var/www/html
+      - /storage/app/apprenant-laravel-firebase-adminsdk-3pqj9-315a6c8b89.json # Mount the storage directory
+    networks:
+      - laravel
     environment:
-      - APP_ENV=local
-      - APP_KEY=base64:HPuInvzQ9JSgh+xM/FohNU+Sj+ZSGYN1LQksvHVXbWI=
-      - DB_CONNECTION=pgsql
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_DATABASE=gestion_apprenant
-      - DB_USERNAME=thomas
-      - DB_PASSWORD=aadeldiablo10
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5433
+      DB_DATABASE: gestion_apprenant
+      DB_USERNAME: thomas
+      DB_PASSWORD: aadeldiablo10
+      APP_PORT: 8080
+      FIREBASE_KEY_BASE64: your_base64_encoded_key_here
+      GOOGLE_APPLICATION_CREDENTIALS: /var/www/firebase-key.json
+    expose:
+      - "8080"  # Ensure the application listens on this port
+
+  webserver:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx
+    volumes:
+      - .:/var/www
+      - ./nginx/default.conf:/etc/nginx/sites-enabled/default.conf
+    ports:
+      - "8080:80"
     depends_on:
-      - db
+      - app
     networks:
-      - laravel-network
+      - laravel
 
-  db:
+  postgres:
     image: postgres:latest
-    ports:
-      - "5434:5432"
+    container_name: postgres
+    restart: always
     environment:
-      - POSTGRES_DB=gestion_apprenant
-      - POSTGRES_USER=thomas
-      - POSTGRES_PASSWORD=aadeldiablo10
+      POSTGRES_DB: gestion_apprenant
+      POSTGRES_USER: thomas
+      POSTGRES_PASSWORD: aadeldiablo10
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     networks:
-      - laravel-network
-
-volumes:
-  db_data:
+      - laravel
 
 networks:
-  laravel-network:
+  laravel:
     driver: bridge
-command: php -S 0.0.0.0:9000 -t public
+
+volumes:
+  postgres_data:

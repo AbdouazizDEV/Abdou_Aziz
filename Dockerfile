@@ -1,30 +1,61 @@
+# Utiliser l'image PHP officielle avec extensions
 FROM php:8.2-fpm
 
-# Installer les dépendances nécessaires
+# Installer des dépendances
 RUN apt-get update && apt-get install -y \
+    build-essential \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
-    libpq-dev
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    curl \
+    unzip \
+    git \
+    libpq-dev \
+    libzip-dev \
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql zip gd mbstring exif pcntl bcmath
 
-# Copier le code source dans le conteneur
-COPY . /var/www/html
+# Installer Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Changer les permissions du répertoire
-RUN chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
-
-# Changer le répertoire de travail
+# Définir le répertoire de travail
 WORKDIR /var/www/html
 
-# Installer les dépendances PHP avec Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-RUN composer install --no-dev --optimize-autoloader
+# Copier les fichiers du projet dans le conteneur
+COPY . .
+# Gérer les permissions pour éviter les problèmes de système de fichiers en lecture seule
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
 
-# Créer un répertoire pour votre application
-RUN mkdir -p /var/www/html
+# Configurer les permissions sur le répertoire de travail
+RUN chown -R www-data:www-data /var/www/html
 
-# Exposer le port 80
-EXPOSE 80
+# Installer les dépendances du projet
+RUN composer install
 
-# Démarrer Nginx et PHP-FPM
-CMD service nginx start && php-fpm
+# Crée le fichier firebase-key.json à partir de la variable d'environnement base64
+RUN echo $FIREBASE_KEY_BASE64 | base64 -d > /var/www/firebase-key.json
+
+
+# Copier le fichier d'environnement et générer la clé
+COPY .env.example .env
+RUN php artisan key:generate
+
+# Configurer les permissions sur le stockage et le cache
+# RUN chown -R www-data:www-data /var/www/storage \
+#     && chmod -R 777 /var/www/html/Gestion_Apprenant_laravel/Apprenant/storage \
+#     && chmod -R 777 /var/www/html/Gestion_Apprenant_laravel/Apprenant/bootstrap/cache
+
+
+
+# Exposer le port
+EXPOSE 8080
+
+# Copie le script de démarrage
+COPY start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
+
+# Commande pour démarrer l'application
+CMD php artisan serve --host=0.0.0.0 --port=$PORT
